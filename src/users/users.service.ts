@@ -24,17 +24,13 @@ export class UsersService {
     return await this.usersModel.findOne({ email }).exec();
   }
 
-  async findByType(query: FindUsersDto): Promise<any> {
-    // Find type
-    const type = query.type.toLowerCase();
-
-    // Match find condition
-    const match = { [type]: query.search, _id: { $ne: query.user } };
-
+  async find(query: FindUsersDto): Promise<any> {
     // Exception
     try {
       // Find user
-      const finded = await this.usersModel.findOne(match).exec();
+      const finded = await this.usersModel
+        .findOne({ email: query.search, _id: { $ne: query.user } })
+        .exec();
 
       // Check finded
       if (!finded) return null;

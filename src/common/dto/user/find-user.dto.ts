@@ -1,10 +1,5 @@
-import { IsEnum, IsMongoId, IsString } from 'class-validator';
+import { IsMongoId, IsString } from 'class-validator';
 import mongoose from 'mongoose';
-
-enum FindUserTypeEnum {
-  PHONE = 'PHONE',
-  EMAIL = 'EMAIL',
-}
 
 export class FindUsersDto {
   @IsMongoId()
@@ -12,7 +7,4 @@ export class FindUsersDto {
 
   @IsString()
   search: string;
-
-  @IsEnum(FindUserTypeEnum)
-  type: FindUserTypeEnum;
 }

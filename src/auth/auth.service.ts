@@ -70,21 +70,21 @@ export class AuthService {
           'Mật khẩu không trùng khớp nhau!',
           HttpStatus.CONFLICT,
         );
-      }
-
-      // Find user by email
-      const findUser = await this.usersService.findByEmail(body.email);
-
-      // Check user is exists
-      if (findUser) {
-        // Throw error unthorized
-        throw new HttpException('Email đã được đăng ký', HttpStatus.CONFLICT);
       } else {
-        // Sign up created
-        await this.usersService.create(body);
+        // Find user by email
+        const findUser = await this.usersService.findByEmail(body.email);
 
-        // Return
-        return true;
+        // Check user is exists
+        if (findUser) {
+          // Throw error unthorized
+          throw new HttpException('Email đã được đăng ký', HttpStatus.CONFLICT);
+        } else {
+          // Sign up created
+          await this.usersService.create(body);
+
+          // Return
+          return true;
+        }
       }
     } catch (error) {
       // Throw Error

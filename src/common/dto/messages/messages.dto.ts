@@ -17,4 +17,10 @@ export class MessagesDto {
 
   @IsNotEmpty()
   sender: ChaterDTO;
+
+  @IsNotEmpty()
+  to: string;
+
+  @IsNotEmpty()
+  from: string;
 }

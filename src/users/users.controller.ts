@@ -20,7 +20,7 @@ export class UsersController {
   @Get('find')
   async find(@Query(new ValidationPipe()) query: FindUsersDto) {
     // Find user by type
-    const data = await this.usersService.findByType(query);
+    const data = await this.usersService.find(query);
 
     // Return
     return new ResponseData({ data }, HttpStatus.OK);

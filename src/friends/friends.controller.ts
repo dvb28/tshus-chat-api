@@ -1,6 +1,4 @@
 import {
-  Post,
-  Body,
   Controller,
   HttpCode,
   ValidationPipe,
@@ -9,27 +7,16 @@ import {
   Query,
 } from '@nestjs/common';
 import { FriendsService } from './friends.service';
-import { FriendRequestDto } from 'src/common/dto/user/friend-request';
-import { ResponseMessage } from 'src/common/global/response.message';
 import { SearchFriendsDto } from 'src/common/dto/friends/search-friend.dto';
 import { Public } from 'src/common/decorator/auth.decorator';
 import { ResponseData } from 'src/common/global/response.data';
+import { LoadRequestReqDto } from 'src/common/dto/friends/load-request.dto';
+import { FriendsPageDto } from 'src/common/dto/friends/page.dto';
 
 @Controller('friends')
 export class FriendsController {
   constructor(private readonly friendService: FriendsService) {}
   // [ROLE] USER
-
-  // [GET] /send
-  @HttpCode(200)
-  @Post('send')
-  async send(@Body(new ValidationPipe()) body: FriendRequestDto) {
-    // Send friend request service
-    await this.friendService.send(body);
-
-    // Return
-    return new ResponseMessage('Đã gửi yêu cầu kết bạn', HttpStatus.OK);
-  }
 
   // [GET] /search
   @Public()
@@ -41,5 +28,29 @@ export class FriendsController {
 
     // Return
     return new ResponseData({ data }, HttpStatus.OK);
+  }
+
+  // [GET] /search
+  @Public()
+  @HttpCode(200)
+  @Get('load_request')
+  async load_request(@Query(new ValidationPipe()) params: LoadRequestReqDto) {
+    // Load request of user
+    const load = await this.friendService.load_request(params);
+
+    // Return
+    return new ResponseData({ data: load }, HttpStatus.OK);
+  }
+
+  // [GET] /page
+  @Public()
+  @HttpCode(200)
+  @Get('page')
+  async page(@Query(new ValidationPipe()) params: FriendsPageDto) {
+    // Load page data
+    const page = await this.friendService.page(params);
+
+    // Return
+    return new ResponseData({ data: page }, HttpStatus.OK);
   }
 }
