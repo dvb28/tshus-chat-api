@@ -16,6 +16,7 @@ import { FriendRequestDto } from 'src/common/dto/user/friend-request';
 import { FriendsService } from 'src/friends/friends.service';
 import { FriendsActionsDto } from 'src/common/dto/friends/actions.dto';
 import { FriendsActionsEnum } from 'src/common/enums/friends-actions.enum';
+import { CallEnDto, CallToDto } from 'src/common/dto/socket/socket.dto';
 
 interface TshusSocket extends Socket {
   user: string;
@@ -72,7 +73,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     socket.broadcast.emit('callEnded');
   }
 
-  handleConnection(socket: TshusSocket): void {
+  handleConnection(client: TshusSocket): void {
     // Users list
     const users = [];
 
@@ -88,24 +89,86 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // Users
     this.server.emit('users', users);
 
-    // Emit me
-    socket.emit('me', socket.id);
+    client.emit('me', client.id);
+  }
 
-    // Event
-    socket.on('callUser', (data: any) => {
-      // Emit socket
-      this.server.to(data.userToCall).emit('callUser', {
-        signal: data.signalData,
-        from: data.from,
-        name: data.name,
-      });
-    });
+  @Public()
+  @SubscribeMessage('call:answer')
+  async callAnswer(@MessageBody(new ValidationPipe()) body: any) {
+    // Exception
+    try {
+      // Find
+      const find = Array.from(this.server.of('/').sockets.values()).find(
+        (sk) => (sk as TshusSocket)?.user === body.to,
+      );
 
-    // Events
-    socket.on('answerCall', (data: any) => {
-      // Emit socket
-      this.server.to(data.to).emit('callAccepted', data.signal);
-    });
+      // Check to
+      if (find) {
+        // Emit socket
+        this.server.to(find?.id).emit('call:accepted', body.signal);
+      } else {
+        // throw ws exception
+        throw new WsException('Không tìm thấy người dùng');
+      }
+    } catch (error) {
+      // throw ws exception
+      throw new WsException(error.message);
+    }
+  }
+
+  @Public()
+  @SubscribeMessage('call:to')
+  async callTo(@MessageBody(new ValidationPipe()) body: CallToDto) {
+    // Exception
+    try {
+      // Find
+      const find = Array.from(this.server.of('/').sockets.values()).find(
+        (sk) => (sk as TshusSocket)?.user === body.to?.user,
+      );
+
+      // Check to
+      if (find) {
+        // Emit socket
+        this.server.to(find?.id).emit('call:from', {
+          signal: body.signalData,
+          from: body.from,
+          name: body.name,
+        });
+      } else {
+        // throw ws exception
+        throw new WsException('Không tìm thấy người dùng');
+      }
+    } catch (error) {
+      // throw ws exception
+      throw new WsException(error.message);
+    }
+  }
+
+  @Public()
+  @SubscribeMessage('call:to:end')
+  async callToEnd(@MessageBody(new ValidationPipe()) body: CallEnDto) {
+    // Exception
+    try {
+      // Find
+      const find = Array.from(this.server.of('/').sockets.values()).find(
+        (sk) => (sk as TshusSocket)?.user === body.to,
+      );
+
+      // Check to
+      if (find) {
+        // Emit socket
+        this.server.to(find?.id).emit('call:from:end', {
+          from: body.from,
+          name: body.name,
+        });
+      } else {
+        // throw ws exception
+        throw new WsException('Không tìm thấy người dùng');
+      }
+    } catch (error) {
+      // throw ws exception
+      throw new WsException(error.message);
+    }
   }
 
   @Public()
